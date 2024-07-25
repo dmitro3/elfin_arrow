@@ -3,7 +3,7 @@ import { MyRoomState } from "./schema/MyRoomState";
 
 export class MyRoom extends Room<MyRoomState> {
   maxClients = 4;
-  // maxClients = 1; //testing
+  // maxClients = 2; //testing
   public delayedInterval!: Delayed;
   privateRoom: any;
   battleRoom: any;

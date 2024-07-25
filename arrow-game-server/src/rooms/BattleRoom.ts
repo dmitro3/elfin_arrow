@@ -89,9 +89,31 @@ export class BattleRoom extends Room<MyRoomState> {
             // console.log("this.state.mainBall.angle: ",ball.angle);
           })
 
+        break;
+        case "spawn-arrow":
+          // this.state.createArrow(message.data.id, message.data.posX, message.data.posY, message.data.angle);
+          this.broadcast('game-event', { event: 'spawn-arrow', data: message.data });
+        break;
+        case "updated-arrow":
+          this.state.arrows.forEach((arrow)=>{
+            if(arrow.id == message.id){
+              arrow.posX = message.posX;
+              arrow.posY = message.posY;
+              arrow.angle = message.angle;
+            }
+          })
+        break;
+        case "remove-arrow":
+          // if(this.state.arrows.has(message.data.id))
+          //   this.state.arrows.delete(message.data.id);
+          this.broadcast('game-event', { event: 'remove-arrow', data: message.data });
 
-          // this.broadcast('game-event', { event: 'update-mainball', data: this.state.mainBall });
-
+        break;
+        case "hit-main-ball":
+          this.broadcast('game-event', { event: 'hit-main-ball', data: message.data });
+        break;
+        case "hit-another-arrow":
+          this.broadcast('game-event', { event: 'hit-another-arrow', data: message.data });
         break;
       }
     });

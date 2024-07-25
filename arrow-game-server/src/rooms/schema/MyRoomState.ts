@@ -2,7 +2,7 @@ import { Schema, type, MapSchema } from "@colyseus/schema";
 
 import { Player } from "./Player";
 import { MainBall } from "./MainBall";
-import { Arrow } from "./Arrow";
+// import { Arrow } from "./Arrow";
 
 export class MyRoomState extends Schema {
 
@@ -10,7 +10,7 @@ export class MyRoomState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type("number") timeCounter = 0;
   @type({ map: MainBall }) mainBalls = new MapSchema<MainBall>();
-  @type({ map: Arrow }) arrows = new MapSchema<Arrow>();
+  // @type({ map: Arrow }) arrows = new MapSchema<Arrow>();
   
 
   createPlayer(sessionId: string, props: any, number:any, userId:string, state: string, walletId: string, ticket:string, passCred:string, playerNumber?: number) {
@@ -47,17 +47,17 @@ export class MyRoomState extends Schema {
     return ball;
   }
 
-  createArrow(id: string, posX: number, posY: number, angle: number){
+  // createArrow(id: string, posX: number, posY: number, angle: number){
     
-    const arrow = new Arrow();
+  //   const arrow = new Arrow();
 
-    arrow.id = id;
-    arrow.posX = posX;
-    arrow.posY = posY;
-    arrow.angle = angle;
+  //   arrow.id = id;
+  //   arrow.posX = posX;
+  //   arrow.posY = posY;
+  //   arrow.angle = angle;
 
-    this.arrows.set(id,arrow);
+  //   this.arrows.set(id,arrow);
 
-    return arrow;
-  }
+  //   return arrow;
+  // }
 }

@@ -94,15 +94,15 @@ export class BattleRoom extends Room<MyRoomState> {
           // this.state.createArrow(message.data.id, message.data.posX, message.data.posY, message.data.angle);
           this.broadcast('game-event', { event: 'spawn-arrow', data: message.data });
         break;
-        case "updated-arrow":
-          this.state.arrows.forEach((arrow)=>{
-            if(arrow.id == message.id){
-              arrow.posX = message.posX;
-              arrow.posY = message.posY;
-              arrow.angle = message.angle;
-            }
-          })
-        break;
+        // case "updated-arrow":
+        //   this.state.arrows.forEach((arrow)=>{
+        //     if(arrow.id == message.id){
+        //       arrow.posX = message.posX;
+        //       arrow.posY = message.posY;
+        //       arrow.angle = message.angle;
+        //     }
+        //   })
+        // break;
         case "remove-arrow":
           // if(this.state.arrows.has(message.data.id))
           //   this.state.arrows.delete(message.data.id);

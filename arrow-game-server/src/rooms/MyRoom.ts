@@ -11,7 +11,7 @@ export class MyRoom extends Room<MyRoomState> {
   privateMode = false;
   private roomStartTime: number;
   private isCountingTime: boolean;
-  private timeInterval: Delayed;
+  private timeInterval!: Delayed;
 
   onCreate(options: any) {
     this.setState(new MyRoomState());
@@ -41,6 +41,8 @@ export class MyRoom extends Room<MyRoomState> {
       const currentTime = Date.now();
       const elapsedTime = Math.floor((currentTime - this.roomStartTime) / 1000); // Convert to seconds
       this.state.timeCounter = elapsedTime;
+
+      console.log("My Room CountingTime: ",this.state.timeCounter);
 
       // Optionally, broadcast the time to all clients
       this.broadcast("time-update", { timeCounter: elapsedTime });
@@ -100,7 +102,9 @@ export class MyRoom extends Room<MyRoomState> {
               });
             }
 
+            this.timeInterval.pause();
             this.timeInterval.clear();
+            console.log("My Room this.timeInterval.clear()");
             this.delayedInterval.clear();
           }
         }, 2000);

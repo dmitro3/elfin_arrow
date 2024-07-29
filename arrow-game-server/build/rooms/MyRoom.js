@@ -9,6 +9,7 @@ class MyRoom extends core_1.Room {
         this.maxClients = 4;
         // autoDispose = false;  
         this.privateMode = false;
+        this.waitingPlayerTime = 5;
     }
     onCreate(options) {
         this.setState(new MyRoomState_1.MyRoomState());
@@ -17,16 +18,13 @@ class MyRoom extends core_1.Room {
             this.setPrivate();
         }
         console.log("onCreate queue room");
-        // this.onMessage("*", (client, type, message) => {
-        //   switch (type) {
-        //     case "game-input":
-        //       this.broadcast("game-input-response", { data: message });
-        //       break;
-        //     case "game-start":
-        //       console.log("MyRoom game-start");
-        //       break;
-        //   }
-        // });
+        this.onMessage("*", (client, type, message) => {
+            switch (type) {
+                case "game-start":
+                    console.log("MyRoom game-start");
+                    break;
+            }
+        });
     }
     CountingTime() {
         // Create an interval to update the time counter
@@ -34,11 +32,12 @@ class MyRoom extends core_1.Room {
             const currentTime = Date.now();
             const elapsedTime = Math.floor((currentTime - this.roomStartTime) / 1000); // Convert to seconds
             this.state.timeCounter = elapsedTime;
-            console.log("My Room CountingTime: ", this.state.timeCounter);
+            // console.log("My Room CountingTime: ",this.state.timeCounter);
             // Optionally, broadcast the time to all clients
-            this.broadcast("time-update", { timeCounter: elapsedTime });
+            this.broadcast("waiting-time-update", { timeCounter: elapsedTime });
             // Check if 2 minutes have passed
-            if (this.state.timeCounter >= 120 && !this.state.waitingForServer && this.state.players.size >= 2) {
+            if (this.state.timeCounter >= this.waitingPlayerTime && !this.state.waitingForServer && this.state.players.size >= 2) {
+                this.lock();
                 this.startBattleRoomSearch(true);
                 this.timeInterval.clear();
             }
@@ -66,7 +65,7 @@ class MyRoom extends core_1.Room {
                             console.log("player.playerNumber: ", player.playerNumber);
                             const options = { accessToken: player?.accessToken, sessionId: player?.sessionId, walletid: player?.walletid, userId: player?.uid, name: player?.name, ticket: player?.ticket, passCred: player?.passCred, playerNumber: player.playerNumber };
                             if (client) {
-                                client.send("get-my-sessionId", { data: player?.sessionId });
+                                // client.send("get-my-sessionId", { data: player?.sessionId });
                                 const matchData = await core_1.matchMaker.reserveSeatFor(this.battleRoom, options);
                                 client.send("reserveSeatFor", { data: matchData });
                                 player.reserveSeat = true;
@@ -82,7 +81,6 @@ class MyRoom extends core_1.Room {
                                 message: "Connecting to server"
                             });
                         }
-                        this.timeInterval.pause();
                         this.timeInterval.clear();
                         console.log("My Room this.timeInterval.clear()");
                         this.delayedInterval.clear();
@@ -140,8 +138,8 @@ class MyRoom extends core_1.Room {
                 players: playes
             }
         });
-        if (this.state.players.size == 1)
-            this.isCountingTime = false;
+        // if(this.state.players.size == 1)
+        //   this.isCountingTime = false;
     }
     onDispose() {
         console.log("room", this.roomId, "disposing...");

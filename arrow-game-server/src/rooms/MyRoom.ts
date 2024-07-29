@@ -12,6 +12,7 @@ export class MyRoom extends Room<MyRoomState> {
   private roomStartTime: number;
   private isCountingTime: boolean;
   private timeInterval!: Delayed;
+  private waitingPlayerTime: number = 5;
 
   onCreate(options: any) {
     this.setState(new MyRoomState());
@@ -21,16 +22,13 @@ export class MyRoom extends Room<MyRoomState> {
     }
     console.log("onCreate queue room");
 
-    // this.onMessage("*", (client, type, message) => {
-    //   switch (type) {
-    //     case "game-input":
-    //       this.broadcast("game-input-response", { data: message });
-    //       break;
-    //     case "game-start":
-    //       console.log("MyRoom game-start");
-    //       break;
-    //   }
-    // });
+    this.onMessage("*", (client, type, message) => {
+      switch (type) {
+        case "game-start":
+          console.log("MyRoom game-start");
+          break;
+      }
+    });
 
   }
 
@@ -42,13 +40,14 @@ export class MyRoom extends Room<MyRoomState> {
       const elapsedTime = Math.floor((currentTime - this.roomStartTime) / 1000); // Convert to seconds
       this.state.timeCounter = elapsedTime;
 
-      console.log("My Room CountingTime: ",this.state.timeCounter);
+      // console.log("My Room CountingTime: ",this.state.timeCounter);
 
       // Optionally, broadcast the time to all clients
-      this.broadcast("time-update", { timeCounter: elapsedTime });
+      this.broadcast("waiting-time-update", { timeCounter: elapsedTime });
 
       // Check if 2 minutes have passed
-      if (this.state.timeCounter >= 120 && !this.state.waitingForServer && this.state.players.size >= 2) {
+      if (this.state.timeCounter >= this.waitingPlayerTime && !this.state.waitingForServer && this.state.players.size >= 2) {
+        this.lock();
         this.startBattleRoomSearch(true);
         this.timeInterval.clear();
       }
@@ -84,7 +83,7 @@ export class MyRoom extends Room<MyRoomState> {
               const options = { accessToken: player?.accessToken, sessionId: player?.sessionId, walletid: (player as any)?.walletid, userId: (player as any)?.uid, name: player?.name, ticket: player?.ticket, passCred: player?.passCred, playerNumber: player.playerNumber };
 
               if (client) {
-                client.send("get-my-sessionId", { data: player?.sessionId });
+                // client.send("get-my-sessionId", { data: player?.sessionId });
                 const matchData = await matchMaker.reserveSeatFor(this.battleRoom, options);
                 client.send("reserveSeatFor", { data: matchData });
                 player.reserveSeat = true;
@@ -102,7 +101,6 @@ export class MyRoom extends Room<MyRoomState> {
               });
             }
 
-            this.timeInterval.pause();
             this.timeInterval.clear();
             console.log("My Room this.timeInterval.clear()");
             this.delayedInterval.clear();
@@ -178,8 +176,8 @@ export class MyRoom extends Room<MyRoomState> {
       }
     });
 
-    if(this.state.players.size == 1)
-      this.isCountingTime = false;
+    // if(this.state.players.size == 1)
+    //   this.isCountingTime = false;
   }
 
   onDispose() {

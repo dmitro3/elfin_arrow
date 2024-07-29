@@ -130,7 +130,9 @@ export class BattleRoom extends Room<MyRoomState> {
 
       // console.log("matchTimer: ",matchTimer);
       // Optionally, broadcast the time to all clients
-      this.broadcast("time-update", { timeCounter: matchTimer });
+      if (matchTimer <= 0)
+        matchTimer = 0;
+      this.broadcast("battle-time-update", { timeCounter: matchTimer });
 
       
       if (matchTimer <= 0) {

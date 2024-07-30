@@ -46,7 +46,18 @@ export class BattleRoom extends Room<MyRoomState> {
           this.readyPlayer++;
           console.log("game-start readyPlayer: ",this.readyPlayer, "   remoteRoomId: ",this.remoteRoomId);
           if(this.readyPlayer == this.state.players.size){
-            this.broadcast('game-start', { data: {playerCount:this.state.players.size} });
+
+            let players = [];
+
+            this.state.players.forEach((player)=>{
+              
+              let data = {
+                walletId: player.walletId
+              }
+              players.push(data);
+            })
+
+            this.broadcast('game-start', { data: {players: players, playerCount:this.state.players.size} });
             
             if(!this.isCountingTime){
               this.isCountingTime = true;
@@ -185,7 +196,7 @@ export class BattleRoom extends Room<MyRoomState> {
     Object.entries(playerstate?.player).forEach(([sessionId, options], index) => {
       const _player = this.state.createPlayer((options as { sessionId: string })?.sessionId, options, index,
         (options as { uid: string })?.uid, "battle",
-        (options as { walletid: string })?.walletid,
+        (options as { walletId: string })?.walletId,
         (options as { ticket: string })?.ticket,
         (options as { passCred: string })?.passCred,
         (options as { playerNumber: number })?.playerNumber);

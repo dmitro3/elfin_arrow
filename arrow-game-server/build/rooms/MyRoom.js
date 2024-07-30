@@ -9,7 +9,7 @@ class MyRoom extends core_1.Room {
         this.maxClients = 4;
         // autoDispose = false;  
         this.privateMode = false;
-        this.waitingPlayerTime = 5;
+        this.waitingPlayerTime = 15;
     }
     onCreate(options) {
         this.setState(new MyRoomState_1.MyRoomState());
@@ -96,21 +96,23 @@ class MyRoom extends core_1.Room {
             client.send("privateRoomId", { data: this.roomId });
             this.privateMode = true;
         }
-        const player = this.state.createPlayer(client.sessionId, options?.player, this.state.players.size, "N/A", "queue", "N/A", "N/A", "N/A");
+        console.log("options: ", options);
+        const player = this.state.createPlayer(client.sessionId, options?.player, this.state.players.size, "N/A", "queue", options?.walletId, "N/A", "N/A");
         player.playerNumber = this.state.players.size;
         console.log("this.state.players.size: ", this.state.players.size);
         let canStartGame = this.state.players.size == this.maxClients;
-        let playes = [];
+        let players = [];
         this.state.players.forEach(player => {
             let data = {
                 id: player.sessionId,
                 playerNumber: player.playerNumber,
+                walletId: player.walletId
             };
-            playes.push(data);
+            players.push(data);
         });
         this.broadcast("game-event", {
             event: `set-player`, data: {
-                players: playes,
+                players: players,
                 canStartGame: canStartGame
             }
         });

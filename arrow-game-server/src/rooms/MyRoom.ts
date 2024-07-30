@@ -12,7 +12,7 @@ export class MyRoom extends Room<MyRoomState> {
   private roomStartTime: number;
   private isCountingTime: boolean;
   private timeInterval!: Delayed;
-  private waitingPlayerTime: number = 5;
+  private waitingPlayerTime: number = 15;
 
   onCreate(options: any) {
     this.setState(new MyRoomState());
@@ -121,26 +121,27 @@ export class MyRoom extends Room<MyRoomState> {
       this.privateMode = true;
     }
 
-
-    const player = this.state.createPlayer(client.sessionId, options?.player, this.state.players.size, "N/A", "queue", "N/A", "N/A", "N/A");
+    console.log("options: ", options);
+    const player = this.state.createPlayer(client.sessionId, options?.player, this.state.players.size, "N/A", "queue", options?.walletId, "N/A", "N/A");
     player.playerNumber = this.state.players.size;
 
     console.log("this.state.players.size: ", this.state.players.size);
 
     let canStartGame = this.state.players.size == this.maxClients;
 
-    let playes = [];
+    let players = [];
     this.state.players.forEach(player => {
       let data = {
         id: player.sessionId,
         playerNumber: player.playerNumber,
+        walletId: player.walletId
       }
-      playes.push(data);
+      players.push(data);
     })
 
     this.broadcast("game-event", {
       event: `set-player`, data: {
-        players: playes,
+        players: players,
         canStartGame: canStartGame
       }
     });

@@ -10,6 +10,8 @@ class BattleRoom extends core_1.Room {
         this.remoteRoomId = "";
         this.readyPlayer = 0;
         this.maxMatchTime = 45;
+        this.isGameover = false;
+        this.startedAt = 0;
     }
     onCreate(options) {
         this.lock();
@@ -44,7 +46,7 @@ class BattleRoom extends core_1.Room {
                         let players = [];
                         this.state.players.forEach((player) => {
                             let data = {
-                                walletId: player.walletId
+                                walletId: player.walletId.substring(0, 10)
                             };
                             players.push(data);
                         });
@@ -64,10 +66,8 @@ class BattleRoom extends core_1.Room {
                     break;
                 case "game-over":
                     console.log("gameover:", message);
-                    this.broadcast('game-over', { data: message });
-                    setTimeout(() => {
-                        this.disconnect();
-                    }, 5000);
+                    // this.broadcast('game-over', { data: message });
+                    this.gameOver(options, message?.userId);
                     break;
                 case "update-score":
                     this.broadcast('game-event', { event: 'update-score', data: message.data });
@@ -110,6 +110,48 @@ class BattleRoom extends core_1.Room {
                     break;
             }
         });
+    }
+    async gameOver(options, winnerId) {
+        if (this.isGameover)
+            return;
+        this.isGameover = true;
+        const gameOverRoom = await core_1.matchMaker.createRoom("gameOver", {});
+        console.log("Battle room:", this.roomId + " , GameOver Room:" + gameOverRoom?.roomId);
+        const endedAt = Date.now();
+        let _ret = { gameid: this.roomId, players: [] };
+        let gameMessage = [];
+        let tokens = [];
+        console.log("winnerId: ", winnerId);
+        this.state.players.forEach(async (player, sessionId) => {
+            _ret.players[_ret.players.length] = {
+                "userId": player?.player?.userId,
+                "gameSessionId": player?.player?.ticket,
+                "passCred": player?.player?.passCred,
+                "startedAt": this.startedAt,
+                "endedAt": endedAt,
+                "result": player?.playerNumber == winnerId ? "win" : "lose",
+                "score": player?.playerNumber == winnerId ? 100 : 1,
+                "serviceFee": 0.1,
+                "extra": options.password ? { message: "this is private room. It is event data." } : {}
+            };
+            console.log("player?.playerNumber: ", player?.playerNumber);
+            gameMessage[_ret.players.length] = {
+                "userId": player?.player?.userId,
+                "walletid": player?.player?.walletId,
+                "playerId": player?.player?.playerNumber,
+                "result": player?.playerNumber == winnerId ? "win" : "lose"
+            };
+            tokens[tokens.length] = player?.accessToken;
+        });
+        this.broadcast('game-over', { data: gameMessage });
+        const payload = await core_1.matchMaker.remoteRoomCall(gameOverRoom.roomId, "StartUploadGameReport", [{ data: _ret, tokens: tokens, roomId: this.roomId }]);
+        if (!payload) {
+            console.log(`Battle ${this.roomId} => Gameover room ${gameOverRoom.roomId} upload report error`);
+        }
+        setTimeout(() => {
+            this.disconnect();
+        }, 5000);
+        return true;
     }
     CountingTime() {
         // Create an interval to update the time counter
@@ -163,8 +205,8 @@ class BattleRoom extends core_1.Room {
         // @ts-ignore
         Object.entries(playerstate?.player).forEach(([sessionId, options], index) => {
             const _player = this.state.createPlayer(options?.sessionId, options, index, options?.uid, "battle", options?.walletId, options?.ticket, options?.passCred, options?.playerNumber);
-            this.state.createBall();
         });
+        this.state.createBall();
         // this.broadcast('game-start', { data: {isStart:true} });
         // await matchMaker.remoteRoomCall(this.remoteRoomId, "closeRoom", [{ roomId: this.roomId }]);
         return true;

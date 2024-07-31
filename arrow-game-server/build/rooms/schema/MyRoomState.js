@@ -30,7 +30,7 @@ class MyRoomState extends schema_1.Schema {
     }
     // @type({ map: Arrow }) arrows = new MapSchema<Arrow>();
     createPlayer(sessionId, props, number, userId, state, walletId, ticket, passCred, playerNumber) {
-        console.log('createPlayer sessionId :', sessionId, '    playerNumber: ', playerNumber);
+        console.log('createPlayer sessionId :', sessionId, '    walletId: ', walletId);
         //console.log('props :', props);
         const player = new Player_1.Player().assign(props?.data || props);
         player.posx = -9999;

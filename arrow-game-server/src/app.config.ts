@@ -9,6 +9,7 @@ import cors from 'cors';
  */
 import { MyRoom } from "./rooms/MyRoom";
 import { BattleRoom } from "./rooms/BattleRoom";
+import { GameOverRoom } from "./rooms/GameOverRoom";
 
 export default config({
 
@@ -18,6 +19,7 @@ export default config({
          */
         gameServer.define('queue', MyRoom).filterBy(['password']);
         gameServer.define('battleRoom', BattleRoom).filterBy(['password']);
+        gameServer.define('gameOver', GameOverRoom).filterBy(['password']);
 
     },
 

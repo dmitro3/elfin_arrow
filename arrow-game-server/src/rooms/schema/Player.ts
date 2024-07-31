@@ -2,9 +2,9 @@ import { Schema, type } from "@colyseus/schema";
 
 export class Player extends Schema {
     public connected: boolean;
-    private isBot: boolean;
-    private uid: string;
-    private walletid: string;
+    // private isBot: boolean;
+    // private uid: string;
+    // private walletid: string;
     public sessionId: string;
     public accessToken: string;
     public options: any;

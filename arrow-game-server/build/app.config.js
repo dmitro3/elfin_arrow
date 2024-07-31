@@ -13,6 +13,7 @@ const cors_1 = __importDefault(require("cors"));
  */
 const MyRoom_1 = require("./rooms/MyRoom");
 const BattleRoom_1 = require("./rooms/BattleRoom");
+const GameOverRoom_1 = require("./rooms/GameOverRoom");
 exports.default = (0, tools_1.default)({
     initializeGameServer: (gameServer) => {
         /**
@@ -20,6 +21,7 @@ exports.default = (0, tools_1.default)({
          */
         gameServer.define('queue', MyRoom_1.MyRoom).filterBy(['password']);
         gameServer.define('battleRoom', BattleRoom_1.BattleRoom).filterBy(['password']);
+        gameServer.define('gameOver', GameOverRoom_1.GameOverRoom).filterBy(['password']);
     },
     initializeExpress: (app) => {
         app.use((0, cors_1.default)());

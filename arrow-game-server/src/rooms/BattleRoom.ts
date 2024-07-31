@@ -11,6 +11,9 @@ export class BattleRoom extends Room<MyRoomState> {
   private timeInterval: Delayed;
   private isCountingTime: boolean;
 
+  isGameover = false;
+  startedAt = 0;
+
   onCreate(options: any) {
 
     this.lock();
@@ -30,7 +33,7 @@ export class BattleRoom extends Room<MyRoomState> {
           break;
         case "get-players":
 
-          let players = [];
+          let players: any = [];
 
           this.state.players.forEach((player, sessionId) => {
             let data = {
@@ -47,12 +50,11 @@ export class BattleRoom extends Room<MyRoomState> {
           console.log("game-start readyPlayer: ",this.readyPlayer, "   remoteRoomId: ",this.remoteRoomId);
           if(this.readyPlayer == this.state.players.size){
 
-            let players = [];
+            let players: any = [];
 
             this.state.players.forEach((player)=>{
-              
               let data = {
-                walletId: player.walletId
+                walletId: player.walletId.substring(0,10)
               }
               players.push(data);
             })
@@ -75,11 +77,8 @@ export class BattleRoom extends Room<MyRoomState> {
           break;
         case "game-over":
           console.log("gameover:", message);
-          this.broadcast('game-over', { data: message });
-
-          setTimeout(() => {
-            this.disconnect();
-          }, 5000);
+          // this.broadcast('game-over', { data: message });
+          this.gameOver(options, message?.userId);
           break;
         case "update-score":
 
@@ -129,6 +128,55 @@ export class BattleRoom extends Room<MyRoomState> {
       }
     });
   }
+
+  async gameOver(options:any, winnerId:number){
+    if(this.isGameover)
+        return;
+    this.isGameover = true;
+
+    const gameOverRoom = await matchMaker.createRoom("gameOver", {});    
+    console.log("Battle room:", this.roomId+" , GameOver Room:"+ gameOverRoom?.roomId);
+    const endedAt = Date.now();
+
+    let _ret = { gameid: this.roomId, players: [] as any[] };
+    let gameMessage: any = [];
+    let tokens: string[] = [];
+    console.log("winnerId: ",winnerId);
+
+    this.state.players.forEach(async (player, sessionId) => {
+      _ret.players[_ret.players.length] = {
+          "userId": (player as any)?.player?.userId,
+          "gameSessionId": (player as any)?.player?.ticket,
+          "passCred": (player as any)?.player?.passCred,
+          "startedAt": this.startedAt,
+          "endedAt": endedAt,
+          "result": player?.playerNumber == winnerId ? "win" : "lose",
+          "score": player?.playerNumber == winnerId ? 100 : 1,
+          "serviceFee":0.1,
+          "extra": options.password?{message:"this is private room. It is event data."}:{}
+      };
+      
+      console.log("player?.playerNumber: ",player?.playerNumber);
+      gameMessage[_ret.players.length] = {
+          "userId": (player as any)?.player?.userId,
+          "walletid": (player as any)?.player?.walletId,
+          "playerId": (player as any)?.player?.playerNumber,
+          "result": player?.playerNumber == winnerId ? "win" : "lose"
+      }        
+      tokens[tokens.length] = player?.accessToken;
+    });
+
+    this.broadcast('game-over', { data: gameMessage });          
+    const payload = await matchMaker.remoteRoomCall(gameOverRoom.roomId, "StartUploadGameReport", [{ data: _ret, tokens: tokens, roomId: this.roomId }]);
+    if(!payload){
+      console.log(`Battle ${this.roomId} => Gameover room ${gameOverRoom.roomId} upload report error`);
+    }
+
+    setTimeout(() => {
+      this.disconnect();
+    }, 5000);
+    return true;
+}
 
   
   private CountingTime(){// Set the room start time
@@ -201,8 +249,8 @@ export class BattleRoom extends Room<MyRoomState> {
         (options as { passCred: string })?.passCred,
         (options as { playerNumber: number })?.playerNumber);
 
-        this.state.createBall();
     });
+    this.state.createBall();
 
     // this.broadcast('game-start', { data: {isStart:true} });
     // await matchMaker.remoteRoomCall(this.remoteRoomId, "closeRoom", [{ roomId: this.roomId }]);

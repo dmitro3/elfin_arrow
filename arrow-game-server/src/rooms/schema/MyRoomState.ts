@@ -14,7 +14,7 @@ export class MyRoomState extends Schema {
   
 
   createPlayer(sessionId: string, props: any, number:any, userId:string, state: string, walletId: string, ticket:string, passCred:string, playerNumber?: number) {
-    console.log('createPlayer sessionId :', sessionId, '    playerNumber: ',playerNumber);
+    console.log('createPlayer sessionId :', sessionId, '    walletId: ',walletId);
     //console.log('props :', props);
     const player = new Player().assign(props?.data || props);
     player.posx = -9999;

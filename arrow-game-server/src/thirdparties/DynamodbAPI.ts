@@ -2,8 +2,8 @@ import axios from 'axios';
 import SHA1 from 'crypto-js/sha1';// ES6+ example
 import { SNS } from 'aws-sdk';
 
-//let domain = "https://gameapiv2.gggamer.org";
-let domain = "https://gametestapi.gggamer.org";
+let domain = "https://gameapiv2.gggamer.org";
+// let domain = "https://gametestapi.gggamer.org";
 
 export async function syncTicket(auth_token: string, _data: string) {
   const config = {

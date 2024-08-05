@@ -14,7 +14,7 @@ export class MyRoom extends Room<MyRoomState> {
   private roomStartTime: number;
   private isCountingTime: boolean;
   private timeInterval!: Delayed;
-  private waitingPlayerTime: number = 15;
+  private waitingPlayerTime: number = 30;
 
   onCreate(options: any) {
     this.setState(new MyRoomState());
@@ -199,7 +199,7 @@ export class MyRoom extends Room<MyRoomState> {
   async onAuth(client: Client, options: any, request: any | Promise<any>) {
     try {
       
-      options.player.sessionId = client.sessionId;
+      // options.player.sessionId = client.sessionId;
       if (process.env.NODE_ENV !== "production" && options?.debug === true) {
         options.player.isBot = true;
         return true;

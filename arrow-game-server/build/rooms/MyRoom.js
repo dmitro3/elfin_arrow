@@ -11,7 +11,7 @@ class MyRoom extends core_1.Room {
         this.maxClients = 4;
         // autoDispose = false;  
         this.privateMode = false;
-        this.waitingPlayerTime = 15;
+        this.waitingPlayerTime = 30;
     }
     onCreate(options) {
         this.setState(new MyRoomState_1.MyRoomState());
@@ -103,22 +103,23 @@ class MyRoom extends core_1.Room {
             this.privateMode = true;
         }
         console.log("options: ", options);
-        // let shouldContinue = true;
-        // this.state.players.forEach((player, sessionId) => {
-        //     if(options?.player?.uid == player.userId){
-        //         console.log(`Queue room ${this.roomId} player ${player.userId} exist, sessionId: ${sessionId}.`);
-        //         try{
-        //             this.state.players.delete(client.sessionId);
-        //             client.send("create-new-room", {});
-        //         }catch(e){
-        //             console.log(`Queue room ${this.roomId} remove old player ${player.userId} failed.`);
-        //         }
-        //         shouldContinue = false;
-        //         return false;
-        //     }
-        // });
-        // if (!shouldContinue) 
-        //     return false;
+        let shouldContinue = true;
+        this.state.players.forEach((player, sessionId) => {
+            if (options?.player?.uid == player.userId) {
+                console.log(`Queue room ${this.roomId} player ${player.userId} exist, sessionId: ${sessionId}.`);
+                try {
+                    this.state.players.delete(client.sessionId);
+                    client.send("create-new-room", {});
+                }
+                catch (e) {
+                    console.log(`Queue room ${this.roomId} remove old player ${player.userId} failed.`);
+                }
+                shouldContinue = false;
+                return false;
+            }
+        });
+        if (!shouldContinue)
+            return false;
         const syncTicketData = {
             "userId": options?.player?.uid,
             "ticket_id": client?.ticket,
@@ -158,7 +159,7 @@ class MyRoom extends core_1.Room {
     }
     async onAuth(client, options, request) {
         try {
-            options.player.sessionId = client.sessionId;
+            // options.player.sessionId = client.sessionId;
             if (process.env.NODE_ENV !== "production" && options?.debug === true) {
                 options.player.isBot = true;
                 return true;

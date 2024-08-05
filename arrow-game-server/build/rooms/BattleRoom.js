@@ -3,13 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BattleRoom = void 0;
 const core_1 = require("@colyseus/core");
 const MyRoomState_1 = require("./schema/MyRoomState");
+const DynamodbAPI_1 = require("../thirdparties/DynamodbAPI");
 class BattleRoom extends core_1.Room {
     constructor() {
         super(...arguments);
         this.maxClients = 5;
         this.remoteRoomId = "";
         this.readyPlayer = 0;
-        this.maxMatchTime = 45;
+        // maxMatchTime = 45;
+        // private roomStartTime: number;
+        // private timeInterval: Delayed;
+        // private isCountingTime: boolean;
         this.isGameover = false;
         this.startedAt = 0;
     }
@@ -39,29 +43,39 @@ class BattleRoom extends core_1.Room {
                     // console.log("get-players: ",players);
                     this.broadcast('get-players', { data: players });
                     break;
-                case "game-start":
-                    this.readyPlayer++;
-                    console.log("game-start readyPlayer: ", this.readyPlayer, "   remoteRoomId: ", this.remoteRoomId);
-                    if (this.readyPlayer == this.state.players.size) {
-                        let players = [];
-                        this.state.players.forEach((player) => {
-                            let data = {
-                                walletId: player.walletId.substring(0, 10)
-                            };
-                            players.push(data);
-                        });
-                        this.broadcast('game-start', { data: { players: players, playerCount: this.state.players.size } });
-                        if (!this.isCountingTime) {
-                            this.isCountingTime = true;
-                            this.roomStartTime = Date.now();
-                            this.CountingTime();
-                        }
-                        try {
-                            await core_1.matchMaker.remoteRoomCall(this.remoteRoomId, "closeRoom", [{ roomId: this.roomId }]);
-                        }
-                        catch (error) {
-                            console.error("Error calling remote room:", error);
-                        }
+                // case "game-start":
+                //   this.readyPlayer++;
+                //   console.log("game-start readyPlayer: ", this.readyPlayer, "   remoteRoomId: ", this.remoteRoomId);
+                //   if (this.readyPlayer == this.state.players.size) {
+                //     this.startedAt = Date.now();
+                //     let players: any = [];
+                //     this.state.players.forEach((player) => {
+                //       let data = {
+                //         walletId: player.walletId.substring(0, 10)
+                //       }
+                //       players.push(data);
+                //     })
+                //     this.broadcast('game-start', { data: { players: players, playerCount: this.state.players.size } });
+                //     // if(!this.isCountingTime){
+                //     //   this.isCountingTime = true;
+                //     //   this.roomStartTime = Date.now();
+                //     //   this.CountingTime();
+                //     // }
+                //     try {
+                //       await matchMaker.remoteRoomCall(this.remoteRoomId, "closeRoom", [{ roomId: this.roomId }]);
+                //     } catch (error) {
+                //       console.error("Error calling remote room:", error);
+                //     }
+                //   }
+                //   break;
+                case "game-started":
+                    this.startedAt = Date.now();
+                    this.broadcast('gameScene', { result: 1, data: message });
+                    try {
+                        await core_1.matchMaker.remoteRoomCall(this.remoteRoomId, "closeRoom", [{ roomId: this.roomId }]);
+                    }
+                    catch (error) {
+                        console.error("Error calling remote room:", error);
                     }
                     break;
                 case "game-over":
@@ -71,6 +85,9 @@ class BattleRoom extends core_1.Room {
                     break;
                 case "update-score":
                     this.broadcast('game-event', { event: 'update-score', data: message.data });
+                    break;
+                case "battle-time-update":
+                    this.broadcast('game-event', { event: 'battle-time-update', data: message.data });
                     break;
                 case "update-mainball":
                     // console.log("update-mainball message: ",message);
@@ -132,7 +149,8 @@ class BattleRoom extends core_1.Room {
                 "result": player?.playerNumber == winnerId ? "win" : "lose",
                 "score": player?.playerNumber == winnerId ? 100 : 1,
                 "serviceFee": 0.1,
-                "extra": options.password ? { message: "this is private room. It is event data." } : {}
+                "extra": options.password ? { message: "this is private room. It is event data." } : {},
+                "rewardTokenAmount": player?.playerNumber == winnerId ? 0.1 * this.state.players.size : 0,
             };
             console.log("player?.playerNumber: ", player?.playerNumber);
             gameMessage[_ret.players.length] = {
@@ -153,26 +171,58 @@ class BattleRoom extends core_1.Room {
         }, 5000);
         return true;
     }
-    CountingTime() {
-        // Create an interval to update the time counter
-        this.timeInterval = this.clock.setInterval(() => {
-            const currentTime = Date.now();
-            const elapsedTime = Math.floor((currentTime - this.roomStartTime) / 1000); // Convert to seconds
-            let matchTimer = this.maxMatchTime - elapsedTime;
-            // console.log("matchTimer: ",matchTimer);
-            // Optionally, broadcast the time to all clients
-            if (matchTimer <= 0)
-                matchTimer = 0;
-            this.broadcast("battle-time-update", { timeCounter: matchTimer });
-            if (matchTimer <= 0) {
-                this.timeInterval.clear();
-            }
-        }, 1000); // Update every second
-    }
-    onJoin(client, options) {
-        this.unlock();
-        if (this.state.players.size === this.maxClients - 1) {
-            this.lock();
+    // private CountingTime(){// Set the room start time
+    //   // Create an interval to update the time counter
+    //   this.timeInterval = this.clock.setInterval(() => {
+    //     const currentTime = Date.now();
+    //     const elapsedTime = Math.floor((currentTime - this.roomStartTime) / 1000); // Convert to seconds
+    //     let matchTimer = this.maxMatchTime - elapsedTime;
+    //     // console.log("matchTimer: ",matchTimer);
+    //     // Optionally, broadcast the time to all clients
+    //     if (matchTimer <= 0)
+    //       matchTimer = 0;
+    //     this.broadcast("battle-time-update", { timeCounter: matchTimer });
+    //     if (matchTimer <= 0) {
+    //       this.timeInterval.clear();
+    //     }
+    //   }, 1000); // Update every second
+    // }
+    async onJoin(client, options) {
+        // this.unlock();
+        // if (this.state.players.size === this.maxClients - 1) {
+        //   this.lock();
+        // }
+        if (!options?.passCred) {
+            this.unlock();
+            console.log(`${this.roomId} battle room unlocked`);
+            //console.log(`Battle ${this.roomId} connected.`);
+        }
+        else {
+            console.log("Battle room reconnect token:", this.roomId + ":" + client?._reconnectionToken);
+        }
+        client.options = options;
+        if (options?.ticket) {
+            let _player = this.state.players.get(options?.sessionId);
+            //_player.accessToken = options?.accessToken;
+            //sync-ticket state
+            const syncTicketData = {
+                "userId": options?.userId,
+                "ticket_id": options?.ticket,
+                "state": "battle",
+                "game_id": "ElfinGolf",
+                "reconnectToken": this.roomId + ":" + client?._reconnectionToken
+            };
+            //console.log(syncTicketData);
+            const syncTicketPayload = await (0, DynamodbAPI_1.syncTicket)(options.accessToken, JSON.stringify(syncTicketData));
+            console.log("battle syncTicketPayload:", syncTicketPayload?.data);
+            client.send("updateMessage", { message: "Player Ready" });
+            let _this = this;
+            setTimeout(function () {
+                _this.broadcast("setPlayerReady", { data: { playerNumber: _player?.playerNumber, allPlayerCount: _this.state.players.size } });
+            }, 1000);
+            //console.log('battle room payload :',syncTicketPayload.data , options.accessToken , syncTicketData);
+            //if(syncTicketPayload.data.result !== 1)
+            //throw new Error("Sync Ticket Error.");
         }
     }
     async onLeave(client, consented) {

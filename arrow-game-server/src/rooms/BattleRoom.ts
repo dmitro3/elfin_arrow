@@ -158,6 +158,9 @@ export class BattleRoom extends Room<MyRoomState> {
     console.log("winnerId: ", winnerId);
 
     this.state.players.forEach(async (player, sessionId) => {
+
+
+
       _ret.players[_ret.players.length] = {
         "userId": (player as any)?.player?.userId,
         "gameSessionId": (player as any)?.player?.ticket,
@@ -168,7 +171,7 @@ export class BattleRoom extends Room<MyRoomState> {
         "score": player?.playerNumber == winnerId ? 100 : 1,
         "serviceFee": 0.1,
         "extra": options.password ? { message: "this is private room. It is event data." } : {},
-        "rewardTokenAmount": player?.playerNumber == winnerId ? 0.1 * this.state.players.size : 0,
+        // "rewardTokenAmount": player?.playerNumber == winnerId ? 0.1 * this.state.players.size : 0,
       };
 
       console.log("player?.playerNumber: ", player?.playerNumber);
@@ -253,7 +256,7 @@ export class BattleRoom extends Room<MyRoomState> {
       client.send("updateMessage", { message: "Player Ready" });
       let _this = this;
       setTimeout(function () {
-        _this.broadcast("setPlayerReady", { data: { playerNumber: _player?.playerNumber , allPlayerCount: _this.state.players.size} });
+        _this.broadcast("setPlayerReady", { data: { playerNumber: _player?.playerNumber , playerWalletId: _player?.walletId.substring(0,10), allPlayerCount: _this.state.players.size} });
       }, 1000);
 
       //console.log('battle room payload :',syncTicketPayload.data , options.accessToken , syncTicketData);

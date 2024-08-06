@@ -150,7 +150,7 @@ class BattleRoom extends core_1.Room {
                 "score": player?.playerNumber == winnerId ? 100 : 1,
                 "serviceFee": 0.1,
                 "extra": options.password ? { message: "this is private room. It is event data." } : {},
-                "rewardTokenAmount": player?.playerNumber == winnerId ? 0.1 * this.state.players.size : 0,
+                // "rewardTokenAmount": player?.playerNumber == winnerId ? 0.1 * this.state.players.size : 0,
             };
             console.log("player?.playerNumber: ", player?.playerNumber);
             gameMessage[_ret.players.length] = {
@@ -218,7 +218,7 @@ class BattleRoom extends core_1.Room {
             client.send("updateMessage", { message: "Player Ready" });
             let _this = this;
             setTimeout(function () {
-                _this.broadcast("setPlayerReady", { data: { playerNumber: _player?.playerNumber, allPlayerCount: _this.state.players.size } });
+                _this.broadcast("setPlayerReady", { data: { playerNumber: _player?.playerNumber, playerWalletId: _player?.walletId.substring(0, 10), allPlayerCount: _this.state.players.size } });
             }, 1000);
             //console.log('battle room payload :',syncTicketPayload.data , options.accessToken , syncTicketData);
             //if(syncTicketPayload.data.result !== 1)

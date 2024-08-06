@@ -103,23 +103,22 @@ class MyRoom extends core_1.Room {
             this.privateMode = true;
         }
         console.log("options: ", options);
-        let shouldContinue = true;
-        this.state.players.forEach((player, sessionId) => {
-            if (options?.player?.uid == player.userId) {
-                console.log(`Queue room ${this.roomId} player ${player.userId} exist, sessionId: ${sessionId}.`);
-                try {
-                    this.state.players.delete(client.sessionId);
-                    client.send("create-new-room", {});
-                }
-                catch (e) {
-                    console.log(`Queue room ${this.roomId} remove old player ${player.userId} failed.`);
-                }
-                shouldContinue = false;
-                return false;
-            }
-        });
-        if (!shouldContinue)
-            return false;
+        // let shouldContinue = true;
+        // this.state.players.forEach((player, sessionId) => {
+        //     if(options?.player?.uid == player.userId){
+        //         console.log(`Queue room ${this.roomId} player ${player.userId} exist, sessionId: ${sessionId}.`);
+        //         try{
+        //             this.state.players.delete(client.sessionId);
+        //             client.send("create-new-room", {});
+        //         }catch(e){
+        //             console.log(`Queue room ${this.roomId} remove old player ${player.userId} failed.`);
+        //         }
+        //         shouldContinue = false;
+        //         return false;
+        //     }
+        // });
+        // if (!shouldContinue) 
+        //     return false;
         const syncTicketData = {
             "userId": options?.player?.uid,
             "ticket_id": client?.ticket,

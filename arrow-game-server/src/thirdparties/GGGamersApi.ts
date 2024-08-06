@@ -2,8 +2,8 @@ import axios from 'axios';
 import SHA1 from 'crypto-js/sha1';// ES6+ example
 import { SNS } from 'aws-sdk';
 
-axios.defaults.baseURL = 'https://api.elfin.games';
-// axios.defaults.baseURL = 'https://api-testnet.elfin.games';
+// axios.defaults.baseURL = 'https://api.elfin.games';
+axios.defaults.baseURL = 'https://api-testnet.elfin.games';
 axios.defaults.headers.common['InvocationType'] = "Event";
 
 const token = process.env.ENCRYPT_KEY;

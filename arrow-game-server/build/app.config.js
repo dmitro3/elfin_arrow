@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const tools_1 = __importDefault(require("@colyseus/tools"));
 const monitor_1 = require("@colyseus/monitor");
-const playground_1 = require("@colyseus/playground");
 const express_basic_auth_1 = __importDefault(require("express-basic-auth"));
 const cors_1 = __importDefault(require("cors"));
 /**
@@ -37,7 +36,7 @@ exports.default = (0, tools_1.default)({
          * (It is not recommended to expose this route in a production environment)
          */
         if (process.env.NODE_ENV !== "production") {
-            app.use("/", playground_1.playground);
+            // app.use("/", playground);
             app.use("/colyseus", (0, monitor_1.monitor)());
         }
         /**
